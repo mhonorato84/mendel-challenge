@@ -9,8 +9,4 @@ public class ConverterTransaction {
 		return new Transaction(idTransaction, transactionDto.getAmount(), transactionDto.getType(), transactionDto.getParent_id());
 	}
 
-	public static TransactionDto convertTransactionToDto(Transaction transaction) {
-		return new TransactionDto(transaction.getAmount(), transaction.getType(), transaction.getParent_id());
-	}
-
 }
