@@ -21,6 +21,7 @@ import com.mendel.transactions.model.dto.TransactionDto;
 import com.mendel.transactions.model.entity.Transaction;
 import com.mendel.transactions.service.ITransactionService;
 import com.mendel.transactions.utils.ConverterTransaction;
+import com.mendel.transactions.utils.ValidateTransaction;
 
 
 
@@ -28,7 +29,7 @@ import com.mendel.transactions.utils.ConverterTransaction;
 @RequestMapping("/transactions")
 public class TransactionController {
 
-	private static final String WRITING_TYPE_FINDALL_NOT_FOUND_EXCEPTION_MSG = "No existen tipo de escritos cargados";
+
 
 	Logger log = LoggerFactory.getLogger(TransactionController.class);
 
@@ -38,17 +39,15 @@ public class TransactionController {
 	
 	@GetMapping("/types/{type}")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<Map<String, Object>> getTransactionsByType(@PathVariable String type) {
-		Map<String, Object> response = new HashMap<>();		
+	public ResponseEntity getTransactionsByType(@PathVariable String type) {		
 		List<Transaction> listTransactions = null;
 		try {
-			 listTransactions = transactionService.getByType("");
+			 listTransactions = transactionService.getByType(type);
 
 		} catch (Exception ex) {
 			log.error("Error al obtener los estados: " + ex);
 		}
-		response.put("data", listTransactions);
-		return new ResponseEntity<>(response, HttpStatus.OK);
+		return new ResponseEntity<>(listTransactions, HttpStatus.OK);
 	}
 	
 
@@ -56,14 +55,28 @@ public class TransactionController {
 	@ResponseStatus(HttpStatus.CREATED)
 	public ResponseEntity<Map<String, Object>> insertTransactions(@PathVariable Long transaction_id, @RequestBody TransactionDto transactionDto) {
 		
-		//TODO realizar validaciones respectivas
 		Map<String, Object> response = new HashMap<>();
+		//TODO realizar validaciones respectivas
+		
+		
+		
 		//Convert DTO to Transaction
 		Transaction transaction = ConverterTransaction.convertTransactionFromDto(transactionDto, transaction_id);
+		//Valida los datos enviados de la transacción
+		String messageValidation = ValidateTransaction.validateTransaction(transaction);
+		messageValidation = this.checkIfExistTransaction(transaction.getTransaction_id());
+		if(transaction.getParent_id()!=0L)
+		messageValidation = this.checkIfExistTransactionParent(transaction.getParent_id());
+		if( messageValidation !=null && !messageValidation.equals("")) {
+			response.put("Message", messageValidation);
+			return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+		}
 		
 		try {
-			transactionService.save(transaction);					
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			
+			transactionService.save(transaction);		
+			response.put("Message", "Se ha guardado la transacción de forma exitosa");
+			return new ResponseEntity<>(response, HttpStatus.CREATED);
 
 		} catch (Exception ex) {
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -72,5 +85,31 @@ public class TransactionController {
 	}
 
 
+	@GetMapping("/sum/{transaction_id}")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<Map<String, Object>> getTransactionsByType(@PathVariable Long transaction_id) {
+		Map<String, Object> response = new HashMap<>();		
+		Double sum = null;
+		try {
+			 sum = transactionService.getSumByTransaction(transaction_id);
+
+		} catch (Exception ex) {
+			log.error("Error al obtener los estados: " + ex);
+		}
+		response.put("sum", sum);
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
 	
+	private String validate(Transaction transaction) {
+		String validateMessage = ValidateTransaction.validateTransaction(transaction);
+		return validateMessage;
+	}
+	
+	
+	private String checkIfExistTransaction(Long transactionId) {
+		return transactionService.isTransactionNumberInList(transactionId)?"El número de transación fue registrado previamente":null;
+	}
+	private String checkIfExistTransactionParent(Long parentId) {
+		return !transactionService.isTransactionNumberInList(parentId)?"El número de transación al que hace referencia es inexistente":null;
+	}
 }

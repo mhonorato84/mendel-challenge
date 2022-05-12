@@ -16,9 +16,8 @@ public class TransactionServiceImpl implements ITransactionService{
 	InMemoryTransactions inMemoryTransactions;
 	
 	@Override
-	public List<Transaction> getByType(String type) {
-		// TODO Auto-generated method stub
-		return inMemoryTransactions.getListTransactions();
+	public List<Transaction> getByType(String type) {	
+		return inMemoryTransactions.getListTransactionsByType(type);
 	}
 
 	@Override
@@ -26,4 +25,15 @@ public class TransactionServiceImpl implements ITransactionService{
 		inMemoryTransactions.addToListTransaction(transaction);
 	}
 
+	@Override
+	public Double getSumByTransaction(Long transactionId) {
+		return inMemoryTransactions.getSumByTransactionAndParentId(transactionId);
+	}
+
+	@Override
+	public Boolean isTransactionNumberInList(Long transactionId) {
+		 return inMemoryTransactions.isTransactionNumberInList(transactionId);		
+	}
+
+	
 }
