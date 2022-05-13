@@ -6,9 +6,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import com.mendel.transactions.model.entity.Transaction;
+import com.mendel.transactions.utils.ConverterTransaction;
 
 @Component
 @ConfigurationProperties("static")
@@ -19,6 +22,7 @@ public class InMemoryTransactions {
 	public void addToListTransaction(Transaction transaction) {
 		this.listTransactions.add(transaction);
 	}
+
 	public List<Transaction> getListTransactions() {
 		return this.listTransactions;
 	}

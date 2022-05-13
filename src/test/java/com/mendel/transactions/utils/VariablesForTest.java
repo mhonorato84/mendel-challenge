@@ -1,4 +1,4 @@
-package com.mendel.transacciones.utils;
+package com.mendel.transactions.utils;
 
 public class VariablesForTest {
 	public static final String SUCCESS_PERSIST = "Se ha guardado la transacción de forma exitosa";

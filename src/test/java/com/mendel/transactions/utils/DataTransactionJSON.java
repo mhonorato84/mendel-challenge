@@ -1,4 +1,4 @@
-package com.mendel.transacciones.utils;
+package com.mendel.transactions.utils;
 
 import org.json.JSONException;
 import org.json.JSONObject;

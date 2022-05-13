@@ -1,8 +1,9 @@
-package com.mendel.transacciones;
+package com.mendel.transactions;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.http.HttpStatus.OK;
+
+import static org.springframework.http.HttpStatus.*;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,9 +26,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mendel.transacciones.utils.DataTransactionJSON;
-import com.mendel.transacciones.utils.VariablesForTest;
+import com.mendel.transactions.utils.DataTransactionJSON;
 import com.mendel.transactions.utils.ValidateTransaction;
+import com.mendel.transactions.utils.VariablesForTest;
 
 @EnableWebMvc
 @TestMethodOrder(OrderAnnotation.class)
@@ -37,7 +38,8 @@ class TestTransactionsApplication {
 
 	private ObjectMapper objectMapper;
 	private RestTemplate restTemplate;
-	private String urlPostTransaction, urlPostTransactionAutoreferencce, urlGetTypes, urlGetSum;
+	private String urlPostTransaction, urlPostTransactionAutoreferencce, urlGetTypes, urlGetSum,
+			urlPostTransactionIdNulo;
 
 	@LocalServerPort
 	int randomServerPort;
@@ -47,10 +49,10 @@ class TestTransactionsApplication {
 		restTemplate = new RestTemplate();
 		urlPostTransaction = "http://localhost:" + randomServerPort + "/transactions/"
 				+ VariablesForTest.ID_TRANSACTION_TO_INSERT;
+		urlPostTransactionIdNulo = "http://localhost:" + randomServerPort + "/transactions/" + null;
 		urlPostTransactionAutoreferencce = "http://localhost:" + randomServerPort + "/transactions/"
 				+ VariablesForTest.ID_TRANSACTION_TO_INSERT_AUTOREFERENCE;
-		urlGetTypes = "http://localhost:" + randomServerPort + "/transactions/types/"
-				+ VariablesForTest.TYPE;
+		urlGetTypes = "http://localhost:" + randomServerPort + "/transactions/types/" + VariablesForTest.TYPE;
 		urlGetSum = "http://localhost:" + randomServerPort + "/transactions/sum/"
 				+ VariablesForTest.ID_TRANSACTION_FOR_SUM;
 		objectMapper = new ObjectMapper();
@@ -75,34 +77,64 @@ class TestTransactionsApplication {
 			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
 
 		try {
-			restTemplate.postForObject(urlPostTransactionAutoreferencce,
-					getRequestCreateTransactionAutoreference(), String.class);
+			restTemplate.postForObject(urlPostTransactionAutoreferencce, getRequestCreateTransactionAutoreference(),
+					String.class);
 
 		} catch (Exception ex) {
 			assertTrue(ex.getMessage().contains(ValidateTransaction.ID_PARENT_SELF_REFERENCE));
 		}
 
 	}
+
+	@Test
+	@Order(3)
+	@DisplayName("Post Transaction fail, Id null")
+	void tesInsertTransactionIdNulo()
+			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
+
+		try {
+			String responseEntity = restTemplate.postForObject(urlPostTransactionIdNulo, getRequestCreateTransactionAutoreference(),
+					String.class);
+		} catch (Exception ex) {		
+			assertTrue(ex.getMessage().contains(String.valueOf(BAD_REQUEST.value())));
+		}
+	}
+	
+	@Test
+	@Order(4)
+	@DisplayName("Post Transaction fail, Id repeated")
+	void testInsertTransactionRepeated()
+			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
+		try {
+		String personResultAsJsonStr = restTemplate.postForObject(urlPostTransaction, getRequestCreateTransaction(),
+				String.class);
+		} catch (Exception ex) {		
+			assertTrue(ex.getMessage().contains(ValidateTransaction.ID_EXISTING));
+		}
+		
+	}
+
+
 	@Test
 	@Order(5)
 	@DisplayName("Get Types")
 	void testGetTypesOfTransactions()
 			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
-		
 		try {
 			ResponseEntity<String> responseEntity = restTemplate.getForEntity(urlGetTypes, String.class);
 			assertEquals(OK, responseEntity.getStatusCode());
 		} catch (Exception ex) {
 			System.out.println(ex);
 		}
-		
+
 	}
+
 	@Test
 	@Order(6)
 	@DisplayName("Get Sum")
 	void testGetSumOfTransactions()
 			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
-		
+
 		try {
 			ResponseEntity<String> responseEntity = restTemplate.getForEntity(urlGetSum, String.class);
 			assertEquals(OK, responseEntity.getStatusCode());
@@ -110,7 +142,7 @@ class TestTransactionsApplication {
 		} catch (Exception ex) {
 			System.out.println(ex);
 		}
-		
+
 	}
 
 	private HttpEntity<String> getRequestCreateTransaction() throws JSONException {
