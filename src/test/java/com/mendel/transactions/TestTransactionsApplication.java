@@ -47,6 +47,8 @@ class TestTransactionsApplication {
 	@BeforeEach
 	void setUp() {
 		restTemplate = new RestTemplate();
+		objectMapper = new ObjectMapper();
+
 		urlPostTransaction = "http://localhost:" + randomServerPort + "/transactions/"
 				+ VariablesForTest.ID_TRANSACTION_TO_INSERT;
 		urlPostTransactionIdNulo = "http://localhost:" + randomServerPort + "/transactions/" + null;
@@ -55,7 +57,6 @@ class TestTransactionsApplication {
 		urlGetTypes = "http://localhost:" + randomServerPort + "/transactions/types/" + VariablesForTest.TYPE;
 		urlGetSum = "http://localhost:" + randomServerPort + "/transactions/sum/"
 				+ VariablesForTest.ID_TRANSACTION_FOR_SUM;
-		objectMapper = new ObjectMapper();
 	}
 
 	@Test
@@ -93,27 +94,26 @@ class TestTransactionsApplication {
 			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
 
 		try {
-			String responseEntity = restTemplate.postForObject(urlPostTransactionIdNulo, getRequestCreateTransactionAutoreference(),
-					String.class);
-		} catch (Exception ex) {		
+			String responseEntity = restTemplate.postForObject(urlPostTransactionIdNulo,
+					getRequestCreateTransactionAutoreference(), String.class);
+		} catch (Exception ex) {
 			assertTrue(ex.getMessage().contains(String.valueOf(BAD_REQUEST.value())));
 		}
 	}
-	
+
 	@Test
 	@Order(4)
 	@DisplayName("Post Transaction fail, Id repeated")
 	void testInsertTransactionRepeated()
 			throws JsonMappingException, JsonProcessingException, RestClientException, JSONException {
 		try {
-		String personResultAsJsonStr = restTemplate.postForObject(urlPostTransaction, getRequestCreateTransaction(),
-				String.class);
-		} catch (Exception ex) {		
+			String personResultAsJsonStr = restTemplate.postForObject(urlPostTransaction, getRequestCreateTransaction(),
+					String.class);
+		} catch (Exception ex) {
 			assertTrue(ex.getMessage().contains(ValidateTransaction.ID_EXISTING));
 		}
-		
-	}
 
+	}
 
 	@Test
 	@Order(5)
