@@ -5,7 +5,7 @@
 
 
 ## Authors
-- [mhonorato](linkedin.com/in/mario-esteban-honorato)
+- Mario Honorato
 
 ## How to run the API (docker)
 
